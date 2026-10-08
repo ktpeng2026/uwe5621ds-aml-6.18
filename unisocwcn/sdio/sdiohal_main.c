@@ -1356,7 +1356,7 @@ static int sdiohal_parse_dt(void)
 		if (!gpio_is_valid(p_data->gpio_num)) {
 			sdiohal_err("can not get sdio int gpio%d\n",
 				    p_data->gpio_num);
-			p_data->gpio_num = 0;
+			return -EINVAL;
 		}
 	}
 #else /* else of CONFIG_WCN_PARSE_DTS */
@@ -2315,4 +2315,3 @@ void sdiohal_exit(void)
 
 	sdiohal_info("sdiohal_exit ok\n");
 }
-

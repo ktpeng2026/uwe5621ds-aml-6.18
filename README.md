@@ -15,8 +15,18 @@ make KDIR=/path/to/linux-6.18.18 \
      CROSS_COMPILE=aarch64-linux-gnu-
 ```
 
-The firmware path defaults to `/lib/firmware/uwe5621`.  It can be overridden
+The firmware path defaults to `/lib/firmware/uwe5621/`.  It can be overridden
 when invoking the kernel build with `UNISOC_FW_PATH_CONFIG=/other/path`.
+
+The SDIO WCN driver expects the following external firmware file:
+
+- `/lib/firmware/uwe5621/wcnmodem.bin`
+
+The path must end with `/` because the vendor driver appends the firmware
+filename directly.  With the Rockchip/device-tree configuration the driver
+opens this file with `filp_open()` during the first Wi-Fi or Bluetooth power-on;
+it does not use the standard firmware-class loader, so a successful module
+insertion alone does not produce a firmware-loading message.
 
 The expected modules are:
 

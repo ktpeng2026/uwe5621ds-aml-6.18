@@ -13,7 +13,7 @@ export UNISOC_BSP_INCLUDE
 TARGET_BUILD_VARIANT ?= user
 export TARGET_BUILD_VARIANT
 
-UNISOC_FW_PATH_CONFIG ?= /lib/firmware/uwe5621
+UNISOC_FW_PATH_CONFIG ?= /lib/firmware/uwe5621/
 export UNISOC_FW_PATH_CONFIG
 
 else

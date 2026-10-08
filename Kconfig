@@ -1,0 +1,23 @@
+menuconfig UWE5621
+	tristate "Unisoc UWE5621 wireless combo support"
+	depends on MMC && CFG80211
+	help
+	  Enable support for the Unisoc UWE5621 SDIO Wi-Fi/Bluetooth combo.
+
+if UWE5621
+
+config UWE5621_WCN
+	tristate "UWE5621 WCN bus and platform driver"
+	default m
+
+config UWE5621_WIFI
+	tristate "UWE5621 Wi-Fi driver"
+	depends on UWE5621_WCN
+	default m
+
+config UWE5621_BT
+	tristate "UWE5621 Bluetooth TTY driver"
+	depends on UWE5621_WCN && RFKILL && TTY
+	default m
+
+endif

@@ -1593,9 +1593,14 @@ static void sprdwl_init_debugfs(struct sprdwl_priv *priv)
 static void sprdwl_init_mac_addr(struct device *dev, struct sprdwl_priv *priv)
 {
 	int ret;
-	const struct firmware *fw;
+	const struct firmware *fw = NULL;
 	u8 *mac_addr = priv->mac_addr;
 	const char *fw_path = "unisoc_wifi_mac.txt";
+
+	if (is_valid_ether_addr(mac_addr)) {
+		pr_info("sprdwl:chip-provided MAC address: %pM\n", mac_addr);
+		return;
+	}
 
 	memset(mac_addr, 0x0, sizeof(priv->mac_addr));
 	ret = request_firmware(&fw, fw_path, dev);
@@ -1630,7 +1635,8 @@ static void sprdwl_init_mac_addr(struct device *dev, struct sprdwl_priv *priv)
 		mac_addr[2] = 0xda;
 	}
 
-	release_firmware(fw);
+	if (fw)
+		release_firmware(fw);
 }
 
 int sprdwl_core_init(struct device *dev, struct sprdwl_priv *priv)

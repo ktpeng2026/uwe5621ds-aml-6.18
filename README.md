@@ -30,6 +30,10 @@ make KDIR=/lib/modules/"$(uname -r)"/build \
         -j"$(nproc)"
 ```
 
+sudo ./install_uwe5621.sh \
+    --dtb-target /boot/dtb/amlogic/meson-sm1-a95xf3-air-gbit.dtb
+
+
 The firmware path defaults to `/lib/firmware/uwe5621/`.  It can be overridden
 when invoking the kernel build with `UNISOC_FW_PATH_CONFIG=/other/path`.
 

@@ -362,7 +362,18 @@ static int mtty_open(struct tty_struct *tty, struct file *filp)
 {
 	struct mtty_device *mtty = NULL;
 	struct tty_driver *driver = NULL;
+	int ret;
+
+	ret = start_marlin(MARLIN_BLUETOOTH);
+	if (ret) {
+		pr_err("mtty failed to power on bluetooth: %d\n", ret);
+		return ret;
+	}
+	msleep(200);
+
 	data_dump = (bt_host_data_dump *)vmalloc(sizeof(bt_host_data_dump));
+	if (!data_dump)
+		return -ENOMEM;
 	memset(data_dump, 0, sizeof(bt_host_data_dump));
 	if (tty == NULL) {
 		pr_err("mtty open input tty is NULL!\n");
@@ -527,7 +538,7 @@ static int mtty_tty_driver_init(struct mtty_device *device)
 	if (!device->port)
 		return -ENOMEM;
 
-	driver = tty_alloc_driver(MTTY_DEV_MAX_NR * 2, 0);
+	driver = tty_alloc_driver(MTTY_DEV_MAX_NR, 0);
 	if (!driver)
 		return -ENOMEM;
 

@@ -225,6 +225,7 @@ struct marlin_device {
 	int reset;
 	int chip_en;
 	int int_ap;
+	int int_ap_irq;
 	/* power sequence */
 	/* VDDIO->DVDD12->chip_en->rst_N->AVDD12->AVDD33 */
 	struct regulator *dvdd12;
@@ -1600,6 +1601,15 @@ static int marlin_parse_dt(struct platform_device *pdev)
 			WCN_ERR("int_ap request err: %d\n",
 				marlin_dev->int_ap);
 			marlin_dev->int_ap = 0;
+		}
+		marlin_dev->int_ap_irq =
+			platform_get_irq_byname_optional(pdev, "pub-int");
+		if (marlin_dev->int_ap_irq < 0) {
+			WCN_INFO("pub-int irq not configured, gpio fallback: %d\n",
+				 marlin_dev->int_ap_irq);
+			marlin_dev->int_ap_irq = 0;
+		} else {
+			WCN_INFO("pub-int irq=%d\n", marlin_dev->int_ap_irq);
 		}
 	}
 
@@ -3805,7 +3815,8 @@ static int marlin_probe(struct platform_device *pdev)
 #ifndef CONFIG_WCN_PCIE
 #ifdef CONFIG_WCN_SDIO
 	if (marlin_dev->int_ap > 0)
-		sdio_pub_int_init(marlin_dev->int_ap);
+		sdio_pub_int_init(marlin_dev->int_ap,
+				  marlin_dev->int_ap_irq);
 #endif
 #ifdef CONFIG_MEM_PD
 	mem_pd_init();

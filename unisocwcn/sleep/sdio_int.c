@@ -154,27 +154,36 @@ static int sdio_isr_handle_init(void)
 	return -1;
 }
 
-static int sdio_pub_int_register(int irq)
+static int sdio_pub_int_register(int gpio, int irq)
 {
 	int ret = 0;
+	unsigned long irq_flags = IRQF_NO_SUSPEND;
 
-	SLP_MGR_INFO("public_int, gpio-%d\n", irq);
+	SLP_MGR_INFO("public_int, gpio-%d irq-%d\n", gpio, irq);
 
-	if (irq <= 0)
+	if (gpio <= 0)
 		return ret;
 
-	ret = gpio_direction_input(irq);
+	ret = gpio_direction_input(gpio);
 	if (ret < 0) {
-		SLP_MGR_ERR("public_int, gpio-%d input set fail!!!", irq);
+		SLP_MGR_ERR("public_int, gpio-%d input set fail!!!", gpio);
 		return ret;
 	}
 
-	sdio_int.pub_int_num = gpio_to_irq(irq);
+	if (irq > 0)
+		sdio_int.pub_int_num = irq;
+	else
+		sdio_int.pub_int_num = gpio_to_irq(gpio);
 	SLP_MGR_INFO("public_int, intnum-%d\n", sdio_int.pub_int_num);
+	if (sdio_int.pub_int_num <= 0)
+		return sdio_int.pub_int_num ?: -EINVAL;
+
+	if (!irq_get_trigger_type(sdio_int.pub_int_num))
+		irq_flags |= IRQF_TRIGGER_HIGH;
 
 	ret = request_irq(sdio_int.pub_int_num,
 			pub_int_isr,
-			IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND,
+			irq_flags,
 			"pub_int_isr",
 			NULL);
 	if (ret != 0) {
@@ -300,9 +309,9 @@ void sdio_pub_int_poweron(bool state)
 }
 EXPORT_SYMBOL(sdio_pub_int_poweron);
 
-int sdio_pub_int_init(int irq)
+int sdio_pub_int_init(int gpio, int irq)
 {
-	if (irq <= 0) {
+	if (gpio <= 0) {
 		sdio_int.pub_int_num = 0;
 		return 0;
 	}
@@ -320,7 +329,7 @@ int sdio_pub_int_init(int irq)
 
 	init_completion(&(sdio_int.pub_int_completion));
 
-	sdio_pub_int_register(irq);
+	sdio_pub_int_register(gpio, irq);
 
 	sdio_isr_handle_init();
 

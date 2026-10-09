@@ -83,6 +83,23 @@ static unsigned int que_task = 1;
 static int que_sche = 1;
 
 static bool is_dumped;
+
+static void mtty_fixup_supported_commands(unsigned char *data, int len)
+{
+	/*
+	 * UWE5621 advertises HCI Write Default Link Policy Settings
+	 * (opcode 0x080f) but rejects it with Invalid HCI Command Parameters.
+	 * Clear the corresponding Supported Commands bit so the Bluetooth core
+	 * skips that command during controller initialization.
+	 */
+	if (len < 13 || data[0] != HCI_EVENT ||
+	    data[1] != BT_HCI_EVT_CMD_COMPLETE ||
+	    data[4] != 0x02 || data[5] != 0x10 || data[6] != 0x00)
+		return;
+
+	data[12] &= ~0x10;
+	pr_info_once("mtty: disabled unsupported HCI opcode 0x080f\n");
+}
 static bool is_user_debug;
 bt_host_data_dump *data_dump;
 
@@ -275,6 +292,9 @@ static int mtty_rx_cb(int chn, struct mbuf_t *head, struct mbuf_t *tail, int num
 	if (is_user_debug) {
 		bt_host_data_save((unsigned char *)head->buf + BT_SDIO_HEAD_LEN, block_size, BT_DATA_IN);
 	}
+
+	mtty_fixup_supported_commands(
+		(unsigned char *)head->buf + BT_SDIO_HEAD_LEN, block_size);
 
 	woble_data_recv((unsigned char *)head->buf + BT_SDIO_HEAD_LEN, block_size);
 

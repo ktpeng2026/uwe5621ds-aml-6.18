@@ -1439,16 +1439,10 @@ static struct sprdwl_vif *sprdwl_register_netdev(struct sprdwl_priv *priv,
 	ndev->destructor = free_netdev;
 #endif
 	ndev->needed_headroom = priv->skb_head_len;
-	ndev->watchdog_timeo = 2 * HZ;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
-	ndev->features |= NETIF_F_CSUM_MASK;
-#else
-	ndev->features |= NETIF_F_ALL_CSUM;
-#endif
-#ifdef RX_NAPI
-	ndev->features |= NETIF_F_GRO;
-#endif
-	ndev->features |= NETIF_F_SG;
+	ndev->watchdog_timeo = 5 * HZ;
+	ndev->features &= ~(NETIF_F_CSUM_MASK | NETIF_F_SG |
+			    NETIF_F_TSO | NETIF_F_TSO6 |
+			    NETIF_F_GSO | NETIF_F_GRO);
 	SET_NETDEV_DEV(ndev, wiphy_dev(priv->wiphy));
 
 	sprdwl_set_mac_addr(vif, addr, dev_addr);

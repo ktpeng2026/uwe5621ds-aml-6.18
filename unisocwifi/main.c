@@ -950,12 +950,12 @@ static int sprdwl_set_mac(struct net_device *dev, void *addr)
 		if (!is_zero_ether_addr(sa->sa_data)) {
 			vif->has_rand_mac = true;
 			memcpy(vif->random_mac, sa->sa_data, ETH_ALEN);
-			memcpy((void *)dev->dev_addr, sa->sa_data, ETH_ALEN);
+			dev_addr_set(dev, sa->sa_data);
 		} else {
 			vif->has_rand_mac = false;
 			netdev_info(dev, "need clear random mac for sta/softap mode\n");
 			memset(vif->random_mac, 0, ETH_ALEN);
-			memcpy((void *)dev->dev_addr, vif->mac, ETH_ALEN);
+			dev_addr_set(dev, vif->mac);
 		}
 	}
 	/*return success to pass vts test*/
@@ -1094,12 +1094,7 @@ static void sprdwl_set_mac_addr(struct sprdwl_vif *vif, u8 *pending_addr,
 	if (is_valid_ether_addr(custom_mac)) {
 		ether_addr_copy(addr, custom_mac);
 	} else if (priv && is_valid_ether_addr(priv->mac_addr)) {
-		if (type == NL80211_IFTYPE_P2P_DEVICE) {
-			ether_addr_copy(addr, priv->mac_addr);
-		} else {
-			vif->ndev->addr_len = ETH_ALEN;
-			dev_addr_set(vif->ndev, priv->mac_addr);
-		}
+		ether_addr_copy(addr, priv->mac_addr);
 	} else if (pending_addr && is_valid_ether_addr(pending_addr)) {
 		ether_addr_copy(addr, pending_addr);
 	} else if (priv && is_valid_ether_addr(priv->default_mac)) {
@@ -1399,6 +1394,7 @@ static struct sprdwl_vif *sprdwl_register_netdev(struct sprdwl_priv *priv,
 	struct net_device *ndev;
 	struct wireless_dev *wdev;
 	struct sprdwl_vif *vif;
+	u8 dev_addr[ETH_ALEN] = {};
 	int ret;
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
@@ -1455,7 +1451,8 @@ static struct sprdwl_vif *sprdwl_register_netdev(struct sprdwl_priv *priv,
 	ndev->features |= NETIF_F_SG;
 	SET_NETDEV_DEV(ndev, wiphy_dev(priv->wiphy));
 
-	sprdwl_set_mac_addr(vif, addr, (void *)ndev->dev_addr);
+	sprdwl_set_mac_addr(vif, addr, dev_addr);
+	dev_addr_set(ndev, dev_addr);
 
 #ifdef CONFIG_P2P_INTF
 	if (type == NL80211_IFTYPE_P2P_DEVICE)
@@ -1766,4 +1763,3 @@ MODULE_PARM_DESC(tcp_ack_drop_enable, "valid values: [0, 1]");
 #else
 const unsigned int tcp_ack_drop_enable;
 #endif
-

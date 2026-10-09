@@ -9,10 +9,25 @@ driver and is built as three out-of-tree modules.
 Prepare the target kernel tree first (`make ARCH=arm64 defconfig prepare
 modules_prepare`), then run:
 
+sudo apt update
+sudo apt install -y \
+    build-essential \
+    bc bison flex \
+    libssl-dev libelf-dev \
+    dwarves git rsync
+
+ls -l /lib/modules/"$(uname -r)"/build
+
+test -f /lib/modules/"$(uname -r)"/build/Makefile && echo "Makefile OK"
+test -f /lib/modules/"$(uname -r)"/build/Module.symvers && echo "Module.symvers OK"
+
+apt search "linux-headers-$(uname -r)"
+sudo apt install "linux-headers-$(uname -r)"
+
 ```sh
-make KDIR=/path/to/linux-6.18.18 \
-     ARCH=arm64 \
-     CROSS_COMPILE=aarch64-linux-gnu-
+make KDIR=/lib/modules/"$(uname -r)"/build \
+        ARCH=arm64 \
+        -j"$(nproc)"
 ```
 
 The firmware path defaults to `/lib/firmware/uwe5621/`.  It can be overridden

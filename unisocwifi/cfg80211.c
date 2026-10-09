@@ -3243,11 +3243,10 @@ static int sprdwl_cfg80211_set_mac_acl(struct wiphy *wiphy,
 int sprdwl_cfg80211_set_power_mgmt(struct wiphy *wiphy, struct net_device *ndev,
 				   bool enabled, int timeout)
 {
-	struct sprdwl_vif *vif = netdev_priv(ndev);
-
-	wl_ndev_log(L_DBG, ndev, "%s power save status:%d\n", __func__, enabled);
-	return sprdwl_power_save(vif->priv, vif->ctx_id,
-				 SPRDWL_SET_PS_STATE, enabled);
+	wl_ndev_log(L_INFO, ndev,
+		    "%s ignore unsupported power save status:%d\n",
+		    __func__, enabled);
+	return 0;
 }
 
 #ifdef ACS_SUPPORT
